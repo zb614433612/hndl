@@ -1,0 +1,63 @@
+#mybatis配置------------------------------------------------
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.zbdemo.hndl.entity
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    map-underscore-to-camel-case: true
+#-----------------------------------------------
+Spring:
+  application:
+    name: gateway
+  #配置数据源------------------------------------------------------------------------
+  datasource:
+    url: jdbc:mysql://192.168.1.157:3306/hndl?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&useSSL=false
+    username: root
+    password: Zb960321
+    type: com.alibaba.druid.pool.DruidDataSource
+  #配置redis连接----------------------------------------------------------
+  redis:
+    database: 0
+    host: 192.168.1.157
+    port: 6379
+    password: 123456
+    #springboot2.0以上的版本默认使用的是lettuce redis客户端，如果想使用jedis客户端，则需把lettuce依赖进行排除以及手动引入jedis依赖
+    lettuce:
+      pool:
+        max-active: 20  #连接池最大连接数
+        max-wait: -1   #最大阻塞时间，-1没限制
+        max-idle: 10  #最大空闲连接
+        min-idle: 0  #最小空闲连接
+    timeout: 3000  #超时
+  #-----------------------------------------------------------------------
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.1.157:8848
+    gateway:
+      discovery:
+        locator:
+          enabled: true  #表明gateway开启服务注册和发现的功能，并且spring cloud gateway自动根据服务发现为每一个服务创建了一个router，这个router将以服务名开头的请求路径转发到对应的服务
+          lower-case-service-id: true  #是将请求路径上的服务名配置为小写（因为服务注册的时候，向注册中心注册时将服务名转成大写的了
+      routes:
+        -id: user  #自定义id,无意义但不能重复，最好跟服务名保持一致
+        uri: lb://user  # 注册中心中的服务
+        predicates:
+          - Path=/user/** # 转发该路径
+        filters:
+          #内置局部过滤器，必须加上StripPrefix=1，否则访问服务时会带上user
+          - StripPrefix=1
+
+      # 经过gateWay网关时，需要在网关统一配置跨域请求，全部通过
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "*"
+            allowed-headers: "*"
+            allow-credentials: true
+            allowed-methods:
+              - GET
+              - POST
+              - DELETE
+              - PUT
+              - OPTION

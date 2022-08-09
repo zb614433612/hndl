@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zbdemo.hndl.mapper.RoleMapper">
+    <!--新增菜单-->
+    <insert id="insertRole">
+        insert into t_role(`id`,`role_name`, `remake`,`create_time`,`update_time`)
+        values (#{id},#{roleName}, #{remake}, #{createTime},#{updateTime})
+    </insert>
+
+    <!--删除菜单及其子菜单-->
+    <update id="deleteRole" parameterType="java.lang.String">
+        update t_role
+        <set>
+            deleted = 1
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--角色管理-编辑角色-->
+    <update id="updateRole" parameterType="com.zbdemo.hndl.user.entity.Role">
+        update t_role
+        <set>
+            <if test="roleName != null and roleName != ''">
+                `role_name` = #{roleName},
+            </if>
+            <if test="remake != null and remake != ''">
+                `remake` = #{remake},
+            </if>
+            <if test="updateTime != null">
+                `update_time` = #{updateTime},
+            </if>
+        </set>
+        where `id` = #{id}
+        and deleted = 0
+    </update>
+
+    <!--角色管理-根据角色ID查询角色信息-->
+    <select id="findRoleById" resultType="com.zbdemo.hndl.user.entity.Role">
+        select `id`,`role_name`,`remake`,`create_time`,`update_time`
+        from t_role
+        where `id` = #{id}
+    </select>
+
+    <!--角色管理-分页条件查询角色-->
+    <select id="pageRole" resultType="com.zbdemo.hndl.user.entity.Role">
+        select r.id,r.role_name,r.remake,r.create_time,r.update_time
+        from t_role r
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="params.roleName != null and params.roleName != ''">
+                and r.role_name like concat(concat('%',#{params.roleName},'%'))
+            </if>
+        </trim>
+        order by r.create_time
+    </select>
+
+    <!--角色管理-删除绑定角色菜单-->
+    <delete id="deleteRoleMenuByRoleId">
+        delete from t_roles_menus where role_id = #{roleId}
+    </delete>
+
+    <!--角色管理-绑定角色菜单-->
+    <insert id="bindRoleMenu">
+        INSERT INTO t_roles_menus
+        (menu_id, role_id)
+        VALUES
+        <foreach collection ="roleMenuDto.menuIds" item="menuId" separator =",">
+            (#{menuId}, #{roleMenuDto.roleId})
+        </foreach >
+    </insert>
+
+    <!--角色管理-根据角色ID查询角色信息-->
+    <select id="findMenuByRoleId" resultType="com.zbdemo.hndl.user.entity.Menu">
+        select m.id,m.pid, m.type,m.title,m.menu_sort,m.icon,m.path,m.frame,m.remark,m.create_time,m.update_time
+        from t_roles_menus rm
+        left join menu m on m.id = rm.menu_id
+        and m.deleted = 0
+        where rm.role_id = #{id}
+    </select>
+</mapper>

@@ -1,0 +1,20 @@
+#bootstrap配置文件优先级高于application配置文件，如果使用nacos注册中心必须配置在bootstrap中
+spring:
+  #使用配置文件环境
+  #profiles:
+    #active: dev  # 表示开发环境
+    #active: test # 表示测试环境
+    #active: pro # 表示生产环境
+
+  application:
+    name: gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.1.157:8848 #Nacos服务注册中心地址
+      config:
+        server-addr: 192.168.1.157:8848 #Nacos作为配置中心地址
+        file-extension: yaml #指定yaml格式的配置，默认为properties
+        group: GATEWAY_GROUP  #指定分组，不指定使用保留分组
+        namespace: 095dbf2f-4e9f-4825-92ab-1be4bec05a6a #指定命名空间ID，不指定使用保留空间
+        #shared-dataids: user.yaml # 需要使用的配置文件，如果不指定，自动获取文件规则为：${prefix}-${spring.profiles.active}.${file-extension} ，既：项目注册名称-配置的环境.指定的文件后缀,如果不配置spring.profiles.active则${prefix}.${file-extension}

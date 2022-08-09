@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zbdemo.hndl.mapper.AreaMapper">
+    <!--根据菜单ID查询菜单信息-->
+    <select id="findArea" resultType="com.zbdemo.hndl.user.entity.Area">
+        SELECT a.area_id,a.name,a.lng,a.lat,a.parent_id,a.level
+        FROM t_area a
+        <if test="areaId != null">
+            WHERE a.parent_id = #{areaId}
+        </if>
+        <if test="areaId == null">
+            WHERE a.parent_id IS NULL
+        </if>
+    </select>
+</mapper>

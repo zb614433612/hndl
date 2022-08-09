@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zbdemo.hndl.mapper.MenuMapper">
+    <!--新增菜单-->
+    <insert id="insertMenu">
+        insert into t_menu(id,pid, `type`, title, sort, icon, `path`, frame, remark, create_time,update_time)
+        values (#{id},#{pid}, #{type}, #{title}, #{sort}, #{icon}, #{path}, #{frame}, #{remark},
+                #{create_time}, #{updateTime})
+    </insert>
+
+    <!--编辑菜单-->
+    <update id="updateMenu" parameterType="com.zbdemo.hndl.user.entity.Menu">
+        update t_menu
+        <set>
+            <if test="pid != null and pid != ''">
+                pid = #{pid},
+            </if>
+            <if test="type != null">
+                type = #{type}
+            </if>
+            <if test="title != null and title != ''">
+                title = #{title},
+            </if>
+            <if test="sort != null">
+                sort = #{sort},
+            </if>
+            <if test="icon != null and icon != ''">
+                icon = #{icon},
+            </if>
+            <if test="path != null and path != ''">
+                path = #{path},
+            </if>
+            <if test="frame != null">
+                frame = #{frame},
+            </if>
+            <if test="remark != null and remark != ''">
+                remark = #{remark},
+            </if>
+            update_time = #{updateTime}
+        </set>
+        where id = #{id}
+        AND deleted = 0
+    </update>
+
+    <!--删除菜单及其子菜单-->
+    <update id="deleteMenu" parameterType="java.lang.String">
+        update t_menu
+        <set>
+            deleted = 1
+        </set>
+        where id = #{id}
+        or pid = #{id}
+    </update>
+
+    <!--根据菜单ID查询菜单信息-->
+    <select id="findMenuById" resultType="com.zbdemo.hndl.user.entity.Menu">
+        SELECT m.id,m.pid,(select title from t_menu where id = m.pid) as pTitle,m.type,m.title,m.sort,m.icon,m.path,m.frame,m.remark,m.create_time,m.update_time
+        FROM t_menu m
+        WHERE m.id = #{id}
+        AND m.deleted = 0
+    </select>
+
+    <!--分页条件查询菜单-->
+    <select id="pageMenu" resultType="com.zbdemo.hndl.user.entity.Menu">
+        select m.id,m.pid,(select title from t_menu where id = m.pid) as pTitle,m.type,m.title,m.sort,m.icon,m.path,m.frame,m.remark,m.create_time,m.update_time
+        from t_menu m
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="params.title != null and params.title != ''">
+                and m.title LIKE concat('%',#{params.title},'%')
+            </if>
+            <if test="params.type != null">
+                and m.type = #{params.type}
+            </if>
+            <if test="params.frame != null">
+                and m.frame = #{params.frame}
+            </if>
+            and m.deleted = 0
+        </trim>
+        order by m.sort ASC
+    </select>
+
+    <!--查询所有一级菜单-->
+    <select id="findMenuMax" resultType="com.zbdemo.hndl.user.vo.MenuTreeVo">
+        select m.id,m.pid,m.type,m.title,m.sort,m.icon,m.path,m.frame,m.remark,m.create_time,m.update_time
+        from t_menu m
+        where m.pid is null
+        and m.deleted = 0
+        order by m.sort ASC
+    </select>
+
+    <!--根据角色一级菜单-->
+    <select id="findMenuMaxByRoleId" resultType="com.zbdemo.hndl.user.vo.MenuTreeVo">
+        select m.id,m.pid,m.type,m.title,m.sort,m.icon,m.path,m.frame,m.remark,m.create_time,m.update_time
+        from t_roles_menus rm
+        left join t_menu m on rm.menu_id = m.id
+        where m.pid is null
+        and m.deleted = 0
+        order by m.sort ASC
+    </select>
+
+    <!--根据父id查询子菜单(所有)-->
+    <select id="findMenuChildByPid" resultType="com.zbdemo.hndl.user.vo.MenuTreeVo">
+        select m.id,m.pid,m.type,m.title,m.sort,m.icon,m.path,m.frame,m.remark,m.create_time,m.update_time
+        from t_menu m
+        where m.pid = #{id}
+          and m.deleted = 0
+        order by m.sort ASC
+    </select>
+
+    <!-- 根据父id查询子菜单（role权限） -->
+    <select id="findMenuChildByPidAndRole" resultType="com.zbdemo.hndl.user.vo.MenuTreeVo">
+        select m.id,m.pid,m.type,m.title,m.sort,m.icon,m.path,m.frame,m.remark,m.create_time,m.update_time
+        from  `roles_menus` rm
+        left join `menu` m on m.id = rm.menu_id
+        where rm.role_id = #{roleId}
+        and m.deleted = 0
+        and m.pid = #{id}
+        order by m.sort ASC
+    </select>
+</mapper>

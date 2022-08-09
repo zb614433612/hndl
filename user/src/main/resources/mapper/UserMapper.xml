@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zbdemo.hndl.mapper.UserMapper">
+    <!--查询用户是否拥有平台登陆权限-->
+    <select id="findPaasCode" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM t_user u
+        WHERE u.id = (SELECT u1.id FROM t_user u1 WHERE u1.login_name = #{loginDto.loginAccount} OR u1.phone = #{loginDto.loginAccount} OR u1.email = #{loginDto.loginAccount})
+        AND u.paas_code LIKE concat('%',#{loginDto.paasCode},'%')
+        AND u.deleted = 0
+        AND u.state = 1
+    </select>
+
+    <!--查询用户密码-->
+    <select id="findUser" resultType="com.zbdemo.hndl.user.entity.User">
+        SELECT u.id,u.role_id,u.user_name,u.login_name,u.password,u.phone,u.email,u.age,u.sex,
+               u.id_card,u.id_card_type,u.state,u.paas_code,
+               u.area,(select name from t_area where id = u.area) as areaString,u.update_password,u.create_time,u.update_time,u.deleted
+        FROM t_user u
+        WHERE u.login_name = #{loginAccount}
+        OR u.phone = #{loginAccount}
+        OR u.email = #{loginAccount}
+    </select>
+
+    <!--新增用户-->
+    <insert id="insertUser">
+        insert into t_user(id,role_id,user_name, login_name, `password`, phone, email, age, sex, id_card, id_card_type,`state`, paas_code, area,create_time, update_time, deleted)
+        values (#{id},#{roleId},#{userName}, #{loginName}, #{password}, #{phone}, #{email}, #{age}, #{sex}, #{idCard},
+                #{idCardType}, #{state}, #{paasCode},#{area}, #{createTime}, #{updateTime},#{deleted})
+    </insert>
+
+    <!--修改用户信息-->
+    <update id="updateUser" parameterType="com.zbdemo.hndl.user.dto.UpdateUserDto">
+        update t_user
+        <set>
+            <if test="roleId != null and roleId != ''">
+                role_id = #{roleId},
+            </if>
+            <if test="userName != null and userName != ''">
+                user_name = #{userName},
+            </if>
+            <if test="loginName != null and loginName != ''">
+               login_name = #{loginName}
+            </if>
+            <if test="phone != null and phone != ''">
+                phone = #{phone},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+            <if test="age != null">
+                age = #{age},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="idCard != null and idCard != ''">
+                id_card = #{idCard},
+            </if>
+            <if test="idCardType != null">
+                id_card_type = #{idCardType},
+            </if>
+            <if test="area != null">
+                area = #{area},
+            </if>
+            update_time = #{updateTime}
+        </set>
+        where id = #{id}
+        AND deleted = 0
+    </update>
+
+    <!--批量删除用户-->
+    <update id="deleteUser" parameterType="java.lang.String">
+        update t_user
+        <set>
+            deleted = 1
+        </set>
+        where id
+        in
+        <foreach collection="userIds" index="index" item="userId" open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+        AND deleted = 0
+    </update>
+
+    <!--分页查询用户列表-->
+    <select id="pageUserList" resultType="com.zbdemo.hndl.user.vo.FindUserVo">
+        select u.id,u.role_id,(select role_name from t_role where id = u.role_id) as roleName,u.user_name,
+               u.login_name,u.phone,u.email,u.age,u.sex,u.id_card,u.id_card_type,u.state,u.paas_code,u.update_password,
+               u.area,(select name from t_area where id = u.area) as areaString,u.create_time,u.update_time
+        from t_user u
+        <trim prefix="where" prefixOverrides="and | or">
+            <if test="params.userName != null and params.userName != ''">
+                and u.user_name LIKE concat('%',#{params.userName},'%')
+            </if>
+            <if test="params.loginName != null and params.loginName != ''">
+                and u.login_name LIKE concat('%',#{params.loginName},'%')
+            </if>
+            <if test="params.phone != null and params.phone != ''">
+                and u.phone LIKE concat('%',#{params.phone},'%')
+            </if>
+            <if test="params.email != null and params.email != ''">
+                and u.email LIKE concat('%',#{params.email},'%')
+            </if>
+            <if test="params.age != null">
+                and u.age = #{params.age}
+            </if>
+            <if test="params.sex != null">
+                and u.sex = #{params.sex}
+            </if>
+            <if test="params.state != null">
+                and u.state = #{params.state}
+            </if>
+            <if test="params.area != null">
+                and u.area = #{params.area}
+            </if>
+            and u.deleted = 0
+        </trim>
+        order by u.create_time DESC
+    </select>
+
+    <!--停用用户-->
+    <update id="stopUser" parameterType="java.lang.String">
+        update t_user
+        <set>
+            state = 0
+        </set>
+        where id = #{id}
+        AND deleted = 0
+    </update>
+
+    <!--根据id查询用户信息-->
+    <select id="findUserById" resultType="com.zbdemo.hndl.user.entity.User">
+        SELECT u.id,u.role_id,u.user_name,u.login_name,u.password,u.phone,u.email,u.age,u.sex,
+               u.id_card,u.id_card_type,u.state,u.paas_code,u.update_password,
+               u.area,(select name from t_area where id = u.area) as areaString,u.create_time,u.update_time,u.deleted
+        FROM t_user u
+        WHERE u.id = #{id}
+    </select>
+
+    <!--用户密码修改-->
+    <update id="updatePassword" parameterType="com.zbdemo.hndl.user.dto.ForgetPasswordDto">
+        update t_user
+        <set>
+            <if test="firstPassword != null and firstPassword != ''">
+                password = #{firstPassword},
+            </if>
+            update_password = 1
+        </set>
+        where id = #{id}
+        AND deleted = 0
+    </update>
+
+    <!--重置密码-->
+    <update id="resetPassword" parameterType="java.lang.String">
+        update t_user
+        <set>
+            password = #{password},
+            update_password = 0
+        </set>
+        where id = #{userId}
+        AND deleted = 0
+    </update>
+</mapper>
