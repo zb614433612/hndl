@@ -1,3 +1,8 @@
+logging:
+  level:
+    com.alibaba.nacos.client.naming: WARN
+    com.alibaba.nacos.client.config.impl: WARN
+
 #mybatis配置------------------------------------------------
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -9,12 +14,6 @@ mybatis:
 Spring:
   application:
     name: gateway
-  #配置数据源------------------------------------------------------------------------
-  datasource:
-    url: jdbc:mysql://192.168.1.157:3306/hndl?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&useSSL=false
-    username: root
-    password: Zb960321
-    type: com.alibaba.druid.pool.DruidDataSource
   #配置redis连接----------------------------------------------------------
   redis:
     database: 0
@@ -61,3 +60,34 @@ Spring:
               - DELETE
               - PUT
               - OPTION
+    stream:
+      # Binding配置项,对应Map<String,BindingProperties>,order-output为Key,是Binding的名称
+      # 自定义且可以定义多个,分为Input和Output两种配置,但在配置项中并不会体现出来,在@Input和@Output注解中体现
+      bindings:
+        log-output:
+          # rocketmq 的topic
+          destination: LOG-TOPIC-01
+          # 消息内容格式
+          content-type: application/json
+      # SpringCloudStream RocketMQ配置项
+      rocketmq:
+        binder:
+          # rocketmq 的nameserver地址
+          name-server: 192.168.1.157:9876
+        bindings:
+          log-output:
+            # producer配置项,对应RocketMQProducerProperties 类
+            producer:
+              # 生产者分组
+              group: log-dev
+              # 是否同步发送消息,默认为false异步
+              sync: true
+
+# 自定义配置
+custom:
+  # 是否在数据库记录访问日志
+  insertAccessLog: true
+  # 是否在控制台打印访问日志
+  printAccessLog: false
+  # token 过期时间(秒)  2小时
+  tokenOutTime: 7200

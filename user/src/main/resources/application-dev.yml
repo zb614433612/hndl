@@ -1,3 +1,8 @@
+logging:
+  level:
+    com.alibaba.nacos.client.naming: WARN
+    com.alibaba.nacos.client.config.impl: WARN
+
 #mybatis配置------------------------------------------------
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -19,6 +24,26 @@ Spring:
     nacos:
       discovery:
         server-addr: 192.168.1.157:8848
+    # rocketMQ配置
+    stream:
+      bindings:
+        log-input:
+          # rocketmq 的topic
+          destination: LOG-TOPIC-01
+          # 消息内容格式
+          content-type: application/json
+          # 消费者组 命名规则 组名+topic名
+          group: log-consumer-LOG-TOPIC-01
+      rocketmq:
+        binder:
+          name-server: 192.168.1.157:9876
+        bindings:
+          log-input:
+            consumer:
+              # 是否开启消费,默认为true
+              enabled: true
+              # 是否使用广播消费,默认为false使用集群消费
+              broadcasting: false
   #配置redis连接----------------------------------------------------------
   redis:
     database: 0
@@ -132,3 +157,16 @@ Spring:
         enabled: true
         login-username: admin            # 配置监控页面访问密码
         login-password: 123456
+
+# 自定义配置
+custom:
+  # token 过期时间(秒)  2小时
+  tokenOutTime: 7200
+  # 用户密码登录随机码长度
+  userLoginCodeLen: 5
+  # 随机码过期时间(秒)
+  userCodeTime: 120
+  # 用户密码登录随机码前缀标识
+  userCodeHead: userLoginCode
+  # 用户默认密码
+  userPassword: 123456
