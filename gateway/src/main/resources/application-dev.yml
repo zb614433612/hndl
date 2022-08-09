@@ -3,13 +3,6 @@ logging:
     com.alibaba.nacos.client.naming: WARN
     com.alibaba.nacos.client.config.impl: WARN
 
-#mybatis配置------------------------------------------------
-mybatis:
-  mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.zbdemo.hndl.entity
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-    map-underscore-to-camel-case: true
 #-----------------------------------------------
 Spring:
   application:
